@@ -1,5 +1,6 @@
 package br.com.robson.pix_backend.services;
 
+import br.com.robson.pix_backend.models.Bilhete;
 import br.com.robson.pix_backend.models.Usuario;
 import br.com.robson.pix_backend.repositories.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,16 +18,28 @@ public class UsuarioService {
         return usuarioRepository.findAll();
     }
 
+    public List<Bilhete> listarBilhetesDoUsuario(Long usuarioId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        return usuario.getBilhete();
+    }
+
     public Optional<Usuario> buscarPorId(Long id) {
         return usuarioRepository.findById(id);
     }
 
     public Usuario cadastrar(Usuario usuario) {
-        if (usuarioRepository.existsByEmail(usuario.getEmail())) {
-            throw new RuntimeException("Já existe um usuário com esse email");
+        boolean cpfExiste = usuarioRepository.existsByCpf(usuario.getCpf());
+        boolean emailExiste = usuarioRepository.existsByEmail(usuario.getEmail());
+
+        if (cpfExiste || emailExiste) {
+            throw new RuntimeException("CPF ou Email já cadastrado.");
         }
+
         return usuarioRepository.save(usuario);
     }
+
 
     public Usuario atualizar(Long id, Usuario novoUsuario) {
         return usuarioRepository.findById(id).map(usuario -> {
